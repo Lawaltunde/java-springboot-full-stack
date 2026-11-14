@@ -1,18 +1,57 @@
-name: Build workflow
+name: CI
+
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
+
+# Read-only token for every job. No job here writes to the repo.
+permissions:
+  contents: read
+
+# A newer push to the same branch or PR cancels the older run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
+    name: Build and test (JDK 21)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-      - name: JDK
-        uses: actions/setup-java@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up JDK 21 with Maven cache
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: 'temurin'
           java-version: '21'
-      - name: Maven Clean Verify
+          cache: maven
+      # Unit tests (surefire) and Testcontainers integration tests (failsafe).
+      # The runner's Docker daemon provides PostgreSQL for the tests.
+      - name: Maven clean verify
         run: mvn -B -ntp clean verify
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Runs the gitleaks CLI from its official image, pinned by digest.
+      # This needs no extra token permissions and no licence key.
+      - name: Scan git history with gitleaks
+        run: >
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo"
+          ghcr.io/gitleaks/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+          git /repo --redact --no-banner --verbose
