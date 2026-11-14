@@ -32,6 +32,8 @@
         <docker.username>amigoscode</docker.username>
         <docker.image.name>product-service</docker.image.name>
         <docker.image.tag/>
+        <!-- Boot 3.3.5 manages 1.19.8, which cannot talk to Docker Engine 29+ -->
+        <testcontainers.version>1.21.4</testcontainers.version>
     </properties>
     <dependencies>
         <dependency>
