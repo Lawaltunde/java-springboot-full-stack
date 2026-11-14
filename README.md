@@ -1,5 +1,7 @@
 # Product Image Management with AWS S3
 
+[![CI](https://github.com/Lawaltunde/java-springboot-full-stack/actions/workflows/build.yml/badge.svg)](https://github.com/Lawaltunde/java-springboot-full-stack/actions/workflows/build.yml)
+
 This Spring Boot application provides a complete product management system with image upload and download capabilities using Amazon S3 for storage.
 
 ## Features
