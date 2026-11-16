@@ -2,7 +2,7 @@
 ARG JAVA_VERSION=21
 
 # Stage 1: Build the application
-FROM maven:3.9.4 AS builder
+FROM maven:3.10.0 AS builder
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
